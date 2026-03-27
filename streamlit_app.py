@@ -36,7 +36,13 @@ for m in st.session_state.machines:
     with st.expander(label):
         col1, col2 = st.columns([1, 1])
         col1.write(f"狀態: **{m['status']}**")
-        col1.write(f"運行: **{m['sec']//3600}H {m['sec']%3600//60}M**")
+        # --- 修改這裡：讓爆點時間變紅色 ---
+        display_time = f"{m['sec']//3600}H {m['sec']%3600//60}M"
+        if m['sec'] >= 18000:
+            col1.markdown(f"運行: <span style='color: #ff4b4b; font-weight: bold;'>{display_time} ⚠️</span>", unsafe_allow_html=True)
+        else:
+            col1.write(f"運行: {display_time}")
+        # -------------------------------
         
         # 選擇優先級 (單選按鈕)
         user_answers[m['id']] = col2.radio(
