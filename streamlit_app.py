@@ -9,15 +9,19 @@ st.title("🚀 ETE 模擬訓練系統 v7.5 (Web)")
 st.caption("專為快速交接與優先權訓練設計")
 st.sidebar.markdown(f"### 👤 開發者：[Henrylin]\n**版本：Mobile Ready**")
 
-# 3. 初始化數據 (模擬 34 台機台)
-if 'machines' not in st.session_state:
+# --- 修改這一段：增加隨機性 ---
+if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題目"):
     data = []
+    # 這裡我們用一個循環來隨機生成機台
     for i in range(1, 35):
-        st_type = random.choice(["LOT_Q", "WALP", "WPE", "UP", "PMON"])
-        # 隨機產生秒數，故意讓一些超過 18000 (5小時)
-        sec = random.randint(14400, 19800) 
+        # 狀態隨機選取
+        st_type = random.choice(["LOT_Q", "WALP", "WPE", "UP", "PMON", "PM", "DOWN"])
+        # 秒數隨機 (4小時到 6小時之間)
+        sec = random.randint(14400, 21600) 
         data.append({"id": f"PWDA{i:02d}", "status": st_type, "sec": sec})
     st.session_state.machines = data
+    st.rerun() # 確保畫面立即更新
+# --------------------------
 
 # 4. 建立測驗介面
 st.write("---")
