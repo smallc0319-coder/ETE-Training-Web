@@ -66,3 +66,13 @@ if st.button("📊 提交 AI 績效診斷", use_container_width=True):
     if st.button("🔄 重新產生題目"):
         del st.session_state.machines
         st.rerun()
+        
+# 在 App 最後面加上成就勳章
+st.write("---")
+with st.expander("🏆 開發者成就獎章"):
+    st.write("""
+    - ✅ **Debug 高手**：解決了縮進與 UI 衝突問題
+    - ✅ **雲端架構師**：完成 GitHub 與 Streamlit 部署
+    - ✅ **問題解決者**：成功開發 ETE 模擬訓練系統
+    - *“進步是為了更好的交接！”*
+    """)
