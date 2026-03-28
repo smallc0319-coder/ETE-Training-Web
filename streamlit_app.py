@@ -78,22 +78,25 @@ for m in st.session_state.machines:
        "爆點": "⚠️ 爆點"
     }
 
-    # 2. 取得當前機台的類別 (cat)
-    # 確保你在生成數據時有存入 "cat" 這個 key
+    # --- 2. 取得當前狀態標籤 ---
     current_cat = m.get('cat', "正常") 
     status_text = cat_map.get(current_cat, "✅ 正常")
-
-    # 3. 組合最終的標題 label
     label = f"🛠️ {m['id']} | {status_text}"
 
     with st.expander(label):
-        
-        # --- 修改這裡：讓爆點時間變紅色 ---
+        coll, col2 = st.columns([1, 1])
+        coll.write(f"狀態: **{m['status']}**")
+    
+        # --- 3. 計算時間文字 (必須在 if 之前定義，避免 NameError) ---
         display_time = f"{m['sec']//3600}H {m['sec']%3600//60}M"
+    
+        # --- 4. 修改這裡：讓爆點時間變紅色 ---
         if m['sec'] >= 18000:
-            col1.markdown(f"運行: <span style='color: #ff4b4b; font-weight: bold;'>{display_time} ⚠️</span>", unsafe_allow_html=True)
+            # 使用 markdown 語法顯示紅色加粗時間
+            coll.markdown(f"運行: <span style='color: #ff4b4b; font-weight: bold;'>{display_time}</span>", unsafe_allow_html=True)
         else:
-            col1.write(f"運行: {display_time}")
+            coll.write(f"運行: {display_time}")
+        
         # -------------------------------
         
         # 選擇優先級 (單選按鈕)
