@@ -21,24 +21,29 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         "爆點": ["WALP", "LOT_Q"]
     }
     
-   # 2. 建立「保證名單」 (共 34 台)
+  # 2. 建立「配額名單」 (共 34 台)
     categories = []
     
-    # 強制加入 5 台「測機」
+    # 強制加入 5 台「測機」 (每次練習固定有5台測機)
     categories.extend(["測機"] * 5)
     
-    # 強制加入 10 台「爆點」
+    # 強制加入 10 台「爆點」 (每次練習固定有10台爆點)
     categories.extend(["爆點"] * 10)
     
-    # 剩餘 19 台，為了保證「正常」與「待機」一定要出現，我們先各給 1 台
+    # 剩餘 19 台 (34-5-10=19)
+    # 為了保證「正常」與「待機」類別一定要出現，我們先各給 1 台
     categories.append("正常")
     categories.append("待機")
     
-    # 剩下的 17 台，就讓「正常」與「待機」隨機平分，達成平均感
+    # 剩下的 17 台，就讓「正常」與「待機」隨機平分
+    # --- 關鍵修正處 ---
     for _ in range(17):
-        categories.append(random.choice(["正常", "待機"]))
+        # 這裡從 "正常" 與 "待機" 隨機挑一個
+        # 重點：括號內不要再加上 list 了！
+        cat = random.choice(["正常", "待機"])
+        categories.append(cat) # 每次迴圈只 append 一個類別
         
-    # 重點：打亂排序，讓機台編號 (SIM-01, 02...) 順序隨機化
+    # 打亂配額名單排序，讓SIM-01...的狀態變隨機
     random.shuffle(categories)
 
     # 3. 根據分配好的類別生成詳細數據
@@ -153,6 +158,29 @@ if 'submitted' in st.session_state and st.session_state.submitted:
     col_a, col_b = st.columns(2)
     col_a.metric("最終得分", f"{score}%")
     col_b.metric("正確題數", f"{correct}/{total}")
+
+    # 🌟 3. 視覺控制核心 (你要加在這裡！)
+    if score == 100:
+        # --- 滿分：金牌成就感 ---
+        st.balloons() # 噴發氣球
+        
+        # 使用 columns 做出圖文並茂的感覺
+        img_col, txt_col = st.columns([1, 3])
+        with img_col:
+            # 這裡放一個金牌 Emoji 或 圖片
+            st.write("# 🥇") 
+        with txt_col:
+            st.success("## Perfect!")
+            st.success("恭喜！你獲得了「金牌工程師」勳章。你對 ETE 的敏銳度已達頂尖水準！")
+            
+    elif score >= 80:
+        # --- 高分：優秀表現 ---
+        st.info(f"💡 表現優異！診斷分數為 {score}%。再細心一點點就能拿滿分了！")
+        
+    else:
+        # --- 低分：提醒色 (變背景色) ---
+        # 使用 st.error 會自帶紅色背景提醒效果
+        st.error(f"⚠️ 注意：目前的診斷分數為 {score}%。建議重新掃描 Priority 1 (紅色) 的機台！")
 
     if score == 100:
         st.success("Perfect! 你對 ETE 的敏感度已經達到資深工程師水準。")
