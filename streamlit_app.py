@@ -11,6 +11,7 @@ st.sidebar.markdown(f"### 👤 開發者：[Henrylin]\n**版本：Mobile Ready**
 
 # --- 替換原本的數據初始化積木 ---
 if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題目"):
+    st.session_state.submitted = False
     data = []
     # 定義你的新分類
     status_pool = {
@@ -38,12 +39,13 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         else:
             sec = random.randint(3600, 17999)
             
-        data.append({"id": f"SIM-{i:02d}", "status": st_type, "sec": sec})
+        data.append({"id": f"EQP-{i:02d}", "status": st_type, "sec": sec})
     
     random.shuffle(data) # 打亂順序，讓爆點不一定在前面
     st.session_state.machines = data
     st.rerun()
-     
+# --- 關鍵修正：先準備好存答案的盒子 ---
+user_answers = {}     
 for m in st.session_state.machines:
     # 判斷是否為爆點 (5小時)
     is_danger = m['sec'] >= 18000
