@@ -9,11 +9,26 @@ st.title("🚀 ETE 模擬訓練系統 v7.5 (Web)")
 st.caption("專為快速交接與優先權訓練設計")
 st.sidebar.markdown(f"### 👤 開發者：[Henrylin]\n**版本：Mobile Ready**")
 
-# --- 替換原本的數據初始化積木 ---
-if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題目"):
+import random # 確保開頭有 import
+
+# --- 1. 數據初始化邏輯 (放在 App 最上方) ---
+if 'machines' not in st.session_state:
+    st.session_state.machines = []
     st.session_state.submitted = False
-    data = []
-    # 定義你的新分類
+
+# 暫時加這行在網頁上，看看數量對不對
+if 'machines' in st.session_state:
+    stats = [m['status'] for m in st.session_state.machines]
+    st.sidebar.write("目前狀態統計：")
+    st.sidebar.write(f"UP/LOST: {stats.count('UP')+stats.count('LOST')}")
+    st.sidebar.write(f"PMON/DMON: {stats.count('PMON')+stats.count('DMON')}")
+    st.sidebar.write(f"WPE/WEQ: {stats.count('WPE')+stats.count('WEQ')}")
+    st.sidebar.write(f"WALP/LOT_Q: {stats.count('WALP')+stats.count('LOT_Q')}")
+
+# 刷新按鈕或初始生成
+if not st.session_state.machines or st.sidebar.button("🎲 刷新隨機題目"):
+    # 這裡不需要 rerun，我們直接生成數據
+    new_data = []
     status_pool = {
         "正常": ["UP", "LOST"],
         "測機": ["PMON", "DMON"],
@@ -21,54 +36,33 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         "爆點": ["WALP", "LOT_Q"]
     }
     
-  # 2. 建立「配額名單」 (共 34 台)
     categories = []
-    
-    # 強制加入 5 台「測機」 (每次練習固定有5台測機)
     categories.extend(["測機"] * 5)
-    
-    # 強制加入 10 台「爆點」 (每次練習固定有10台爆點)
     categories.extend(["爆點"] * 10)
-    
-    # 剩餘 19 台 (34-5-10=19)
-    # 為了保證「正常」與「待機」類別一定要出現，我們先各給 1 台
     categories.append("正常")
     categories.append("待機")
     
-    # 剩下的 17 台，就讓「正常」與「待機」隨機平分
-    # --- 關鍵修正處 ---
+    # 剩下 17 台
     for _ in range(17):
-        # 這裡從 "正常" 與 "待機" 隨機挑一個
-        # 重點：括號內不要再加上 list 了！
-        cat = random.choice(["正常", "待機"])
-        categories.append(cat) # 每次迴圈只 append 一個類別
+        categories.append(random.choice(["正常", "待機"]))
         
-    # 打亂配額名單排序，讓SIM-01...的狀態變隨機
     random.shuffle(categories)
 
-    # 3. 根據分配好的類別生成詳細數據
     for i, cat in enumerate(categories, 1):
-        # 從對應的池子裡隨機挑一個狀態名稱 (例如「測機」挑出 PMON)
         st_type = random.choice(status_pool[cat])
-        
-        # 時間邏輯判斷
-        if cat == "爆點":
-            # 爆點：必須 > 5小時 (18001~21600秒)
-            sec = random.randint(18001, 21600)
-        else:
-            # 非爆點：必須 < 5小時 (3600~17999秒)
-            sec = random.randint(3600, 17999)
+        # 爆點時間邏輯
+        sec = random.randint(18001, 21600) if cat == "爆點" else random.randint(3600, 17999)
             
-        data.append({
+        new_data.append({
             "id": f"SIM-{i:02d}", 
             "status": st_type, 
             "sec": sec,
-            "is_danger": (cat == "爆點") # 標記是否為爆點
+            "cat": cat # 新增一個欄位紀錄類別，方便除錯
         })
 
-    st.session_state.machines = data
-    st.session_state.submitted = False # 重置提交狀態，按鈕才會顯示
-    st.rerun()
+    st.session_state.machines = new_data
+    st.session_state.submitted = False
+    st.rerun() # 只有在點擊側邊欄按鈕刷新時才需要這行
     
 # --- 關鍵修正：先準備好存答案的盒子 ---
 user_answers = {}     
