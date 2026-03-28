@@ -18,7 +18,7 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         st_type = random.choice(["LOT_Q", "WALP", "WPE", "UP", "PMON", "PM", "DOWN"])
         # 秒數隨機 (4小時到 6小時之間)
         sec = random.randint(14400, 21600) 
-        data.append({"id": f"PWDA{i:02d}", "status": st_type, "sec": sec})
+        data.append({"id": f"EQP{i:02d}", "status": st_type, "sec": sec})
     st.session_state.machines = data
     st.rerun() # 確保畫面立即更新
 # --------------------------
