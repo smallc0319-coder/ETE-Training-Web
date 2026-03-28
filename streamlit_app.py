@@ -9,24 +9,41 @@ st.title("🚀 ETE 模擬訓練系統 v7.5 (Web)")
 st.caption("專為快速交接與優先權訓練設計")
 st.sidebar.markdown(f"### 👤 開發者：[Henrylin]\n**版本：Mobile Ready**")
 
-# --- 修改這一段：增加隨機性 ---
+# --- 替換原本的數據初始化積木 ---
 if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題目"):
     data = []
-    # 這裡我們用一個循環來隨機生成機台
+    # 定義你的新分類
+    status_pool = {
+        "正常": ["UP", "LOST"],
+        "測機": ["PMON", "DMON"],
+        "待機": ["WPE", "WEQ"],
+        "爆點": ["WALP", "LOT_Q"]
+    }
+    
+    # 為了控制爆點數量，我們先生成一個隨機清單
+    # 前 10 台有機會是爆點，後面 24 台強制避開爆點狀態
     for i in range(1, 35):
-        # 狀態隨機選取
-        st_type = random.choice(["LOT_Q", "WALP", "WPE", "UP", "PMON", "PM", "DOWN"])
-        # 秒數隨機 (4小時到 6小時之間)
-        sec = random.randint(14400, 21600) 
-        data.append({"id": f"EQP{i:02d}", "status": st_type, "sec": sec})
+        if i <= 10:
+            # 前 10 台隨機選取所有狀態
+            cat = random.choice(list(status_pool.keys()))
+        else:
+            # 後面台數排除「爆點」分類
+            cat = random.choice(["正常", "測機", "待機"])
+            
+        st_type = random.choice(status_pool[cat])
+        
+        # 邏輯優化：如果是爆點分類，秒數設為 5~6 小時；其餘設為 4 小時以下
+        if cat == "爆點":
+            sec = random.randint(18001, 21600)
+        else:
+            sec = random.randint(3600, 17999)
+            
+        data.append({"id": f"SIM-{i:02d}", "status": st_type, "sec": sec})
+    
+    random.shuffle(data) # 打亂順序，讓爆點不一定在前面
     st.session_state.machines = data
-    st.rerun() # 確保畫面立即更新
-# --------------------------
-
-# 4. 建立測驗介面
-st.write("---")
-user_answers = {}
-
+    st.rerun()
+     
 for m in st.session_state.machines:
     # 判斷是否為爆點 (5小時)
     is_danger = m['sec'] >= 18000
@@ -51,31 +68,48 @@ for m in st.session_state.machines:
             horizontal=True,
             index=3 # 預設在 4
         )
-
+        # --- 複習模式：提交後顯示正確答案 ---
+        is_danger = m['sec'] >= 18000
+        real_answer = 1 if is_danger else 4 
+        
+        if 'submitted' in st.session_state and st.session_state.submitted:
+            if user_answers[m['id']] == real_answer:
+                st.success("✅ 判斷正確")
+            else:
+                st.error(f"❌ 應選: Priority {real_answer}")
 # 5. 結算與 AI 診斷
 st.write("---")
-if st.button("📊 提交 AI 績效診斷", use_container_width=True):
+if st.button("提交診斷"):
+    st.session_state.submitted = True # 紀錄已提交狀態
     correct = 0
     total = len(st.session_state.machines)
-    
-    # 檢查邏輯：PD > 5H 必須是 1
+    wrong_types = [] # 紀錄出錯的狀態分類
+
     for m in st.session_state.machines:
-        ans = 1 if m['sec'] >= 18000 else 4
+        is_danger = m['sec'] >= 18000
+        ans = 1 if is_danger else 4
         if user_answers[m['id']] == ans:
             correct += 1
-            
+        else:
+            wrong_types.append(m['status'])
+
     score = int(correct/total*100)
-    st.balloons() # 噴氣球慶祝
-    st.metric(label="最終得分", value=f"{score}%")
+    st.balloons()
     
-    if score >= 90:
-        st.success("🤖 AI 診斷：判斷非常精準！完全具備進入 GG 的交接實力。")
+    # --- AI 答題報告報告 ---
+    st.subheader("🤖 AI 診斷報告")
+    col_a, col_b = st.columns(2)
+    col_a.metric("最終得分", f"{score}%")
+    col_b.metric("正確題數", f"{correct}/{total}")
+
+    if score == 100:
+        st.success("Perfect! 你對 ETE 的敏感度已經達到資深工程師水準。")
     else:
-        st.warning("🤖 AI 診斷：再檢查一下，PD 超過 5 小時的機台是 Priority 1 喔！")
-    
-    if st.button("🔄 重新產生題目"):
-        del st.session_state.machines
-        st.rerun()
+        # 分析哪種狀態最弱
+        if wrong_types:
+            most_wrong = max(set(wrong_types), key=wrong_types.count)
+            st.warning(f"分析結果：你對 **{most_wrong}** 狀態的判斷較猶豫。")
+        st.info("建議：Priority 1 代表需要立即處理(超過5H)，請優先掃描紅色標註機台。")
         
 # 在 App 最後面加上成就勳章
 st.write("---")
