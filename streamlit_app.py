@@ -21,29 +21,45 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         "爆點": ["WALP", "LOT_Q"]
     }
     
-    # 為了控制爆點數量，我們先生成一個隨機清單
-    # 前 10 台有機會是爆點，後面 24 台強制避開爆點狀態
-    for i in range(1, 35):
-        if i <= 10:
-            # 前 10 台隨機選取所有狀態
-            cat = random.choice(list(status_pool.keys()))
-        else:
-            # 後面台數排除「爆點」分類
-            cat = random.choice(["正常", "測機", "待機"])
-            
+    # 2. 為了精準控制數量，我們先建立一個「類別清單」
+    # 總共 34 台機台
+    categories = []
+    
+    # 強制加入 5 台「測機」
+    categories.extend(["測機"] * 5)
+    
+    # 隨機加入 10 台「爆點」 (這是上限)
+    categories.extend(["爆點"] * 10)
+    
+    # 剩下的 19 台由「正常」與「待機」平分或隨機分配
+    for _ in range(19):
+        categories.append(random.choice(["正常", "待機"]))
+        
+    # 打亂類別順序，讓測機和爆點不會排在一起
+    random.shuffle(categories)
+
+    # 3. 根據分配好的類別生成詳細數據
+    for i, cat in enumerate(categories, 1):
         st_type = random.choice(status_pool[cat])
         
-        # 邏輯優化：如果是爆點分類，秒數設為 5~6 小時；其餘設為 4 小時以下
+        # 爆點邏輯：5~6 小時 (18001~21600秒)
         if cat == "爆點":
             sec = random.randint(18001, 21600)
+        # 非爆點邏輯：4 小時以下 (3600~17999秒)
         else:
             sec = random.randint(3600, 17999)
             
-        data.append({"id": f"EQP-{i:02d}", "status": st_type, "sec": sec})
-    
-    random.shuffle(data) # 打亂順序，讓爆點不一定在前面
+        data.append({
+            "id": f"SIM-{i:02d}", 
+            "status": st_type, 
+            "sec": sec,
+            "cat": cat # 紀錄類別方便後續擴充
+        })
+
     st.session_state.machines = data
+    st.session_state.submitted = False # 重置提交狀態
     st.rerun()
+    
 # --- 關鍵修正：先準備好存答案的盒子 ---
 user_answers = {}     
 for m in st.session_state.machines:
