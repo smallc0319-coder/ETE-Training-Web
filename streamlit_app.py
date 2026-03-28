@@ -101,12 +101,15 @@ if st.button("提交診斷"):
     # 2. 計算分數並存入 session_state (這點很重要)
     st.session_state.final_score = int(correct/total*100)
     st.session_state.correct_count = correct
+
+    score = int(correct/total*100) # 這是區域變數，重整後會消失
     
     # 將結果存入 session_state 保險箱
     st.session_state.final_score = score
     st.session_state.final_correct = correct
     st.session_state.final_total = total
     st.session_state.final_wrong_types = wrong_types
+    st.session_state.submitted = True
     
     # 3. 觸發氣球
     st.balloons()
