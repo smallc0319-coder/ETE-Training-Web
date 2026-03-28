@@ -102,6 +102,12 @@ if st.button("提交診斷"):
     st.session_state.final_score = int(correct/total*100)
     st.session_state.correct_count = correct
     
+    # 將結果存入 session_state 保險箱
+    st.session_state.final_score = score
+    st.session_state.final_correct = correct
+    st.session_state.final_total = total
+    st.session_state.final_wrong_types = wrong_types
+    
     # 3. 觸發氣球
     st.balloons()
     
@@ -113,6 +119,13 @@ if st.button("提交診斷"):
 if 'submitted' in st.session_state and st.session_state.submitted:
     st.write("---")
     st.subheader("🤖 AI 診斷報告")
+    
+    # 從保險箱讀取數據，如果還沒存過就預設為 0 或空清單
+    score = st.session_state.get('final_score', 0)
+    correct = st.session_state.get('final_correct', 0)
+    total = st.session_state.get('final_total', 0)
+    wrong_types = st.session_state.get('final_wrong_types', [])
+    
     col_a, col_b = st.columns(2)
     col_a.metric("最終得分", f"{score}%")
     col_b.metric("正確題數", f"{correct}/{total}")
