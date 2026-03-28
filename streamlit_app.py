@@ -54,7 +54,7 @@ if not st.session_state.machines or st.sidebar.button("🎲 刷新隨機題目")
         sec = random.randint(18001, 21600) if cat == "爆點" else random.randint(3600, 17999)
             
         new_data.append({
-            "id": f"SIM-{i:02d}", 
+            "id": f"EQP-{i:02d}", 
             "status": st_type, 
             "sec": sec,
             "cat": cat # 新增一個欄位紀錄類別，方便除錯
