@@ -110,7 +110,7 @@ if st.button("提交診斷"):
     st.rerun()
     
 # --- AI 答題報告報告 ---
- if 'submitted' in st.session_state and st.session_state.submitted:
+if 'submitted' in st.session_state and st.session_state.submitted:
     st.write("---")
     st.subheader("🤖 AI 診斷報告")
     col_a, col_b = st.columns(2)
