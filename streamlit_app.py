@@ -21,43 +21,48 @@ if 'machines' not in st.session_state or st.sidebar.button("🎲 刷新隨機題
         "爆點": ["WALP", "LOT_Q"]
     }
     
-    # 2. 為了精準控制數量，我們先建立一個「類別清單」
-    # 總共 34 台機台
+   # 2. 建立「保證名單」 (共 34 台)
     categories = []
     
     # 強制加入 5 台「測機」
     categories.extend(["測機"] * 5)
     
-    # 隨機加入 10 台「爆點」 (這是上限)
+    # 強制加入 10 台「爆點」
     categories.extend(["爆點"] * 10)
     
-    # 剩下的 19 台由「正常」與「待機」平分或隨機分配
-    for _ in range(19):
+    # 剩餘 19 台，為了保證「正常」與「待機」一定要出現，我們先各給 1 台
+    categories.append("正常")
+    categories.append("待機")
+    
+    # 剩下的 17 台，就讓「正常」與「待機」隨機平分，達成平均感
+    for _ in range(17):
         categories.append(random.choice(["正常", "待機"]))
         
-    # 打亂類別順序，讓測機和爆點不會排在一起
+    # 重點：打亂排序，讓機台編號 (SIM-01, 02...) 順序隨機化
     random.shuffle(categories)
 
     # 3. 根據分配好的類別生成詳細數據
     for i, cat in enumerate(categories, 1):
+        # 從對應的池子裡隨機挑一個狀態名稱 (例如「測機」挑出 PMON)
         st_type = random.choice(status_pool[cat])
         
-        # 爆點邏輯：5~6 小時 (18001~21600秒)
+        # 時間邏輯判斷
         if cat == "爆點":
+            # 爆點：必須 > 5小時 (18001~21600秒)
             sec = random.randint(18001, 21600)
-        # 非爆點邏輯：4 小時以下 (3600~17999秒)
         else:
+            # 非爆點：必須 < 5小時 (3600~17999秒)
             sec = random.randint(3600, 17999)
             
         data.append({
             "id": f"SIM-{i:02d}", 
             "status": st_type, 
             "sec": sec,
-            "cat": cat # 紀錄類別方便後續擴充
+            "is_danger": (cat == "爆點") # 標記是否為爆點
         })
 
     st.session_state.machines = data
-    st.session_state.submitted = False # 重置提交狀態
+    st.session_state.submitted = False # 重置提交狀態，按鈕才會顯示
     st.rerun()
     
 # --- 關鍵修正：先準備好存答案的盒子 ---
