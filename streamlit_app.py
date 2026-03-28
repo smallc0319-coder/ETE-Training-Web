@@ -82,6 +82,7 @@ for m in st.session_state.machines:
 # 5. 結算與 AI 診斷
 st.write("---")
 if st.button("提交診斷"):
+    st.session_state.submitted = True
     st.session_state.submitted = True # 紀錄已提交狀態
     correct = 0
     total = len(st.session_state.machines)
