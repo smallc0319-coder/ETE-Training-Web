@@ -82,8 +82,9 @@ for m in st.session_state.machines:
 # 5. 結算與 AI 診斷
 st.write("---")
 if st.button("提交診斷"):
+    # 1. 設置提交狀態為 True
     st.session_state.submitted = True
-    st.session_state.submitted = True # 紀錄已提交狀態
+    
     correct = 0
     total = len(st.session_state.machines)
     wrong_types = [] # 紀錄出錯的狀態分類
@@ -91,15 +92,26 @@ if st.button("提交診斷"):
     for m in st.session_state.machines:
         is_danger = m['sec'] >= 18000
         ans = 1 if is_danger else 4
+        # 這裡從 radio 抓取答案
         if user_answers[m['id']] == ans:
             correct += 1
         else:
             wrong_types.append(m['status'])
 
-    score = int(correct/total*100)
+    # 2. 計算分數並存入 session_state (這點很重要)
+    st.session_state.final_score = int(correct/total*100)
+    st.session_state.correct_count = correct
+    
+    # 3. 觸發氣球
     st.balloons()
     
-    # --- AI 答題報告報告 ---
+    # 4. 強制刷新！這會讓程式從第 1 行重新跑，
+    # 屆時上方的 if 'submitted' in st.session_state 就會成真，立刻秀出結果
+    st.rerun()
+    
+# --- AI 答題報告報告 ---
+ if 'submitted' in st.session_state and st.session_state.submitted:
+    st.write("---")
     st.subheader("🤖 AI 診斷報告")
     col_a, col_b = st.columns(2)
     col_a.metric("最終得分", f"{score}%")
